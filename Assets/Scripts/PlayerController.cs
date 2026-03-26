@@ -47,6 +47,11 @@ public class PlayerController : MonoBehaviour
             powerUpIndicator.transform.position = transform.position + new Vector3(0, 0.5f, 0);
             powerUpIndicator.transform.rotation = Quaternion.identity; // keep the indicator upright
         }
+
+        if (smashAction.triggered && hasPowerup)
+        {
+            StartCoroutine(SmashActivate());
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -76,6 +81,40 @@ public class PlayerController : MonoBehaviour
             Vector3 awayFromPlayer = other.transform.position - transform.position;
             enemyRb.AddForce(awayFromPlayer * 5f, ForceMode.Impulse);
             Debug.Log($"Player collided with {other.gameObject.name} and has powerup");
+        }
+    }
+
+    IEnumerator SmashActivate()
+    {
+        // SEQ [1]
+        float chargingTime = 0f;
+        // player need to hold the smash button for 2 seconds for charing
+        // then release the button to smash
+        while (smashAction.IsPressed())
+        {
+            chargingTime += Time.deltaTime;
+            Debug.Log($"smash charging time: {chargingTime}");
+            if (chargingTime >= 2f)
+            {
+                Debug.Log("Smash activated");
+                break;
+            }
+            yield return null;
+        }
+
+        // SEQ [2]
+        if (chargingTime < 2f)
+        {
+            Debug.Log("Smash cancelled");
+            yield break;
+        }
+
+        // SEQ [3]
+        var enemies = FindObjectsByType<Enemy>(FindObjectsSortMode.None);
+        foreach (var enemy in enemies)
+        {
+            var enemyRb = enemy.GetComponent<Rigidbody>();
+            enemyRb.AddExplosionForce(10f, transform.position, 20f, 0f, ForceMode.Impulse);
         }
     }
 }
