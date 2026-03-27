@@ -25,6 +25,7 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        var move = moveAction.ReadValue<Vector2>();
+        //rb.AddForce(move.y * speed * focalPoint.foward);
     }
 }
